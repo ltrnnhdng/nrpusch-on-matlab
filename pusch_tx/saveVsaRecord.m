@@ -1,0 +1,41 @@
+function  saveVsaRecord(fileName, data, sampleFreq, centerFreq, multiPortEnable)
+    % savevsarecording(fileName, data, sampleFreq, centerFreq)
+    % creates an 89600-compatible recording file with user-specified
+    % complex signal data and sample frequency.
+    %
+    % fileName is the desired name of the recording file 
+    %   and should end in .mat. If the fileName is supplied alone
+    %   (e.g. 'MyRecording.mat') it is saved in the
+    %   current directory. You may also supply a complete path 
+    %   (e.g. 'C:\users\me\Documents\MyRecording.mat').
+    % data is the signal data samples and should be a complex vector.
+    % sampleFreq is the sample frequency associated with the data.
+    % centerFreq is the optional center frequency (default is 0)
+
+    halfSpan = sampleFreq / 1.28 / 2;
+    InputCenter = 0;
+    if nargin > 3
+        InputCenter = centerFreq;
+    end
+    FreqValidMax = halfSpan + InputCenter;
+    FreqValidMin = -halfSpan + InputCenter;
+    InputRange = 1;
+    InputRefImped = 50;
+    InputZoom = uint8(1);
+    XDelta = 1 / sampleFreq;
+    XDomain = int16(2);
+    XStart = 0;
+    XUnit = 'Sec';
+    YUnit = 'V';
+    if multiPortEnable
+        P = size(data, 2);
+        for p = 1 : P
+            eval(['Y' num2str(p) '_' num2str(P) ' = single(data(:, ' num2str(p) '));'])
+        end
+    else
+        Y = single(data);
+    end
+    clearvars centerFreq data multiPortEnable sampleFreq
+    save(fileName);
+%     save(fileName, 'FreqValidMax', 'FreqValidMin', 'InputCenter', 'InputRange', 'InputRefImped', 'InputZoom', 'XDelta', 'XDomain', 'XUnit', 'XStart', 'YUnit', 'Y');
+end

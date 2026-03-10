@@ -1,0 +1,73 @@
+cwlen = 10;
+nlayer = 1;
+TransformPreCodingConfig = 0;
+txconfig = 'codebook';
+nantenna = 1;
+
+%d = randi([0 1],cwlen,1)
+d = (randn(1,16) + 1i*randn(1,16))'
+
+x = layerMapping(d, nlayer)
+% y = nrLayerMap(d,nlayer)
+% isequal(x,y)
+
+y = TransformPreCoding(x, TransformPreCodingConfig)
+
+z = Precoding (y, txconfig, TransformPreCodingConfig, nlayer, nantenna)
+
+v = MappingVRB (z,Bpusch)
+function x = layerMapping(d, Nlayer)
+    dlen = length(d);
+    if mod(dlen, Nlayer) ~=0
+        error("So symbol khong chia het cho layer");
+    end
+
+    MSymbolPLayer = dlen / Nlayer;
+
+    x = zeros(MSymbolPLayer, Nlayer);
+    
+    for j = 0:MSymbolPLayer-1
+        x(j+1,:) = d(j*Nlayer+1:j*Nlayer+Nlayer);
+    end
+end
+
+function y = TransformPreCoding(x, TransformPreCodingConfig)
+    if TransformPreCodingConfig == 0
+        y = x;
+    else
+        %PTRS condition.....
+    end
+end
+
+function z = Precoding (y, txconfig, transformPrecoding, nlayer, nantenna)
+% mới làm cho trường hợp 1 antenna 
+    if txconfig ~= "codebook"
+        w = eye(nlayer);
+    else
+        if nlayer == 1 && nantenna == 1
+            w = 1;
+        elseif nlayer == 1 && nantenna == 2 
+            % w = table 6 3 1 5 1
+        elseif nlayer == 1 && nantenna == 4 && transformPrecoding == 'enable'
+            % w = table 6 3 1 5 2
+        elseif nlayer == 1 && nantenna == 4 && transformPrecoding == 'disable'
+            % w = table 6 3 1 5 3
+        elseif nlayer == 2 && nantenna == 2 && transformPrecoding == 'enable'
+            % w = table 6 3 1 5 4
+        elseif nlayer == 2 && nantenna == 4 && transformPrecoding == 'disable'
+            % w = table 6 3 1 5 5
+        elseif nlayer == 3 && nantenna == 4 && transformPrecoding == 'disable'
+            % w = table 6 3 1 5 6
+        elseif nlayer == 4 && nantenna == 4 && transformPrecoding == 'disable'
+            % w = table 6 3 1 5 7    
+        else
+            error("gia tri nlayer va nantenna khong phu hop");
+        end
+    end
+    z = y*w;
+end
+
+function vrb = MappingVRB (z,Bpusch)
+    zp = z*Bpusch; 
+    
+end
